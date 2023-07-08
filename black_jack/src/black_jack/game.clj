@@ -12,30 +12,72 @@
   "Verifica a pontuação das cartas e troca caso for J, Q e K"
   (if (> carta 10) 10 carta))
 
+;(defn opcao-A [posicao]
+;  (printf "Deseja que o valor do %s° A seja: 1 ou 11?" posicao)
+;  (read-line))
+
+
 (defn valor-A [cards]
   "Definir o valor do A"
-  (if (<= (reduce + cards) 21) (map #(if (= 1 %) 11 %) cards) cards))
+  (map #(if (<= (reduce + cards) 21) (if (= 1 %) 11 #_(opcao-A (.indexOf cards 1)) %) %) cards))
 
 
 (defn carta-pontos
   [cartas]
   "Pontos das cartas"
-  (reduce + (valor-A cartas)))
+  (reduce + cartas))
 
 ; Representar jogador
 (defn jogador
-  [nome-do-jogador]
+  [& args]
   (let [cartas-jogador [(nova-carta) (nova-carta)]
-        pontos-cartas (carta-pontos (map parse-JQK cartas-jogador))]
-    {:player-name nome-do-jogador
+        pontos-cartas (carta-pontos (valor-A (map parse-JQK cartas-jogador)))]
+    (println "Digite seu nome: ")
+    {:player-name (if (empty? args) (read-line) args)
      :cards       cartas-jogador
      :points      pontos-cartas}))
 
 (defn mais-cartas [jogador]
   "Pegar mais cartas para o jogador"
-  (assoc
-    (update jogador :cards conj (parse-JQK (nova-carta)))
-    :points (carta-pontos (:cards jogador))))
+  (let [jogador-cards (assoc jogador :cards (conj (:cards jogador) (parse-JQK (nova-carta))))]
+    (assoc
+      jogador-cards
+      :points (carta-pontos (:cards jogador-cards)))))
 
-(def jogador1 (jogador "Pedro"))
-(card/print-player (mais-cartas jogador1))
+(defn decisao-jogador? [player]
+  (println (:player-name player) ": mais carta?")
+  (= (read-line) "s"))
+
+(defn decisao-dealer? [player-points dealer]
+  (let [dealer-points (:points dealer)]
+    (if (> player-points 21) false (<= dealer-points player-points))))
+(defn jogo [player funcao-continue?]
+  "Inicia o jogo e as funções de cada uma"
+  (if (funcao-continue? player)
+    (let [cartas-jogador (mais-cartas player)]
+      (card/print-player cartas-jogador)
+      (recur cartas-jogador funcao-continue?))
+    player))
+
+
+(def jogador1 (jogador))
+(card/print-player jogador1)
+(def dealer (jogador "Dealer"))
+(card/print-masked-player dealer)
+(def jogador-final (jogo jogador1 decisao-jogador?))
+(jogo dealer (partial decisao-dealer? (:points jogador-final)))
+
+
+
+
+(comment
+  (def jogador1 (jogador "Pedro"))
+  (assoc jogador1 :cards [1 1])
+  (println (carta-pontos (map parse-JQK)))
+  (card/print-player jogador1)
+  (def jogador-new (mais-cartas jogador1))
+  (card/print-player)
+  (println (map parse-JQK (:cards jogador1)))
+  (println (valor-A (:cards jogador1)))
+  (println jogador1)
+  prr)
