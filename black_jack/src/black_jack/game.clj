@@ -66,18 +66,3 @@
 (card/print-masked-player dealer)
 (def jogador-final (jogo jogador1 decisao-jogador?))
 (jogo dealer (partial decisao-dealer? (:points jogador-final)))
-
-
-
-
-(comment
-  (def jogador1 (jogador "Pedro"))
-  (assoc jogador1 :cards [1 1])
-  (println (carta-pontos (map parse-JQK)))
-  (card/print-player jogador1)
-  (def jogador-new (mais-cartas jogador1))
-  (card/print-player)
-  (println (map parse-JQK (:cards jogador1)))
-  (println (valor-A (:cards jogador1)))
-  (println jogador1)
-  prr)
